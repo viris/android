@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename type &apos;com.example.labapp.TestClass&apos; to &apos;SocketService&apos;&#x0A;- Original project: &apos;LabApp&apos;&#x0A;- Original element: &apos;com.example.labapp.TestClass&apos;&#x0A;- Renamed element: &apos;com.example.labapp.SocketService&apos;&#x0A;- Update references to refactored element&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;TestClass&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/src&lt;com.example.labapp{TestClass.java[TestClass" matchStrategy="1" name="SocketService" qualified="false" references="true" similarDeclarations="false" stamp="1392273859896" textual="false" version="1.0"/>
-</session>
