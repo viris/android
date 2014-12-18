@@ -35,17 +35,17 @@ it inside inject folder. Source from inject folder will be added to the target a
 
 #USAGE 
 
-Vaccinate and install vaccinated apk file:
+Vaccinate and install vaccinated apk file:  
 ./vaccine -i apkfile -p 8888
 
-Stop service on vaccinated apk file that listens on specified port:
+Stop service on vaccinated apk file that listens on specified port:  
 ./vaccine --stop full_package_name -p 8888
 
-Start service of package (You can get the package name in log file):
+Start service of package (You can get the package name in log file):  
 ./vaccine --start full_package_name -p 8888
 
-Use another keystore:
-./vaccine -i apkfile -p 8888 --keystore path_to_keystore --pass keystore_password --alias keystore_alias
+Use another keystore:  
+./vaccine -i apkfile -p 8888 --keystore path_to_keystore --pass keystore_password --alias keystore_alias  
 
 UI instructions:
 
