@@ -1,0 +1,8 @@
+
+import xyzkwjbl.viris.ext.Capabilities;
+
+setAccessibility( boolean b ) 
+{
+	Capabilities.setAccessibility(b);
+}
+

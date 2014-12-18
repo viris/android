@@ -27,7 +27,7 @@ ndk-build
 
 #5.	Setup DDI
 ###########################
-#a.	Poll libraries from Phone and build Dalvikhook
+#a 	Poll libraries from Phone and build Dalvikhook
 ###########################
 
 cd ddi/dalvikhook/jni/libs
@@ -36,8 +36,27 @@ adb pull /system/lib/libdvm.so
 cd..
 ndk-build
 
+#b Prepare vaccinehook
 
-#b.	Build vaccinehook and push it to phone. Also push vaclasses.dex to phone.
+In ddi/examples/ create folder vaccine. There create jni folder and place inside vaccine.c (is in runtime folder of vaccine zip package) and Android.mk with the following contents. 
+------
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := libvaccine
+LOCAL_SRC_FILES := vaccine.c.arm
+LOCAL_C_INCLUDES := ../../../../adbi/instruments/base/ ../../../dalvikhook/jni/
+LOCAL_LDLIBS := -L../../../dalvikhook/jni/libs -ldl -ldvm 
+LOCAL_LDLIBS := -Wl,--start-group ../../../../adbi/instruments/base/obj/local/armeabi/libbase.a ../../../dalvikhook/obj/local/armeabi/libdalvikhook.a -Wl,--end-group 
+LOCAL_CFLAGS := -g
+
+include $(BUILD_SHARED_LIBRARY)
+------------------------
+
+Make sure that paths for LOCAL_C_INCLUDES, LOCAL_LDLIBS point to your adbi, ddi location
+
+#c	Build vaccinehook and push it to phone. Also push vaclasses.dex to phone.
 ###########################
 
 cd ddi/examples/vaccine/jni
@@ -48,7 +67,7 @@ adb push vaclasses.dex /data/local/tmp
 
 #If you get the error “cc1: some warnings being treated as errors” you should comment the line “TARGET_FORMAT_STRING_CFLAGS := #-Wformat -Werror=format-security” in file “ndk/build/core/default-build-commands.mk”
 
-#c.	Hook method and Inject Vaccine Service
+#d	Hook method and Inject Vaccine Service
 ###########################
 
 adb push vaclasses.dex /data/local/tmp/
@@ -59,15 +78,15 @@ touch vaccine.log
 chmod 777 /data/local/tmp/vaccine.log
 chmod 777 /data/dalvik-cache/
 
-#get PID of zygote
+--get PID of zygote
 
 ./hijack -d -p PID -z -l /data/local/tmp/libvaccine.so -s full.package.name
 
-#example 
+--example 
 
 ./hijack -d -p 141 -z -l /data/local/tmp/libvaccine.so -s com.android.mms
 
-#now run the Messaging apk on phone and you should see something similar
+--now run the Messaging apk on phone and you should see something similar
 
 mprotect: 0x401e0ef4
 dlopen: 0x401060a5
@@ -81,7 +100,7 @@ executing injection code at 0xbeb51628
 calling mprotect
 library injection completed!
 
-#d.	Run Vaccine GUI (For now!!!). 
+#e	Run Vaccine GUI (For now!!!). 
 #################################
 #In folder smali should be smali source of target apk
 

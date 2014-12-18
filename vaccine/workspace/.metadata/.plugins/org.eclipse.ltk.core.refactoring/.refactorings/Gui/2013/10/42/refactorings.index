@@ -1,0 +1,39 @@
+1381987222509	Copy compilation unit
+1381987272806	Copy file
+1381987409287	Copy file
+1381987439174	Delete element
+1381987446421	Delete element
+1381987541154	Copy folder
+1381988218588	Delete element
+1381988225431	Delete element
+1382006367245	Rename local variable 'scrollPane'
+1382006379806	Rename local variable 'splitPane'
+1382006391440	Rename local variable 'scrollPane2'
+1382006405115	Rename local variable 'editro'
+1382006803554	Rename field 'rootNode'
+1382006819195	Rename field 'userNode'
+1382006856649	Rename field 'treeModel'
+1382006869991	Rename field 'tree'
+1382007359166	Delete element
+1382007583378	Rename field 'rootNodeApplication'
+1382007594599	Rename field 'treeModelApplication'
+1382007605435	Rename field 'treeApplication'
+1382010800311	Rename field 'listItem'
+1382010935280	Rename type 'ListTransferHandler'
+1382011737903	Delete element
+1382011743268	Delete element
+1382012605278	Delete element
+1382012628495	Rename field 'rootNodeApplication'
+1382012638362	Rename field 'treeModelApplication'
+1382012645068	Rename field 'treeApplication'
+1382014960353	Rename field 'status'
+1382018486224	Delete elements
+1382074371356	Rename local variable 'sonew'
+1382074622679	Rename local variable 'soold'
+1382074767654	Rename local variable 'object'
+1382074778284	Rename local variable 'old'
+1382075727493	Rename resource 'private_field.png'
+1382075740769	Rename resource 'public_field.png'
+1382075747673	Rename resource 'private_field'
+1382076056775	Rename resource 'public_p.png'
+1382076326696	Rename resource 'public_f.png'

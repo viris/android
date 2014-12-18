@@ -1,0 +1,42 @@
+1375700982824	Delete element
+1375700986959	Delete element
+1375701018687	Move compilation unit
+1375701525376	Delete element
+1375705539388	Rename package 'com.example.servise'
+1375709748360	Delete element
+1375775306705	Delete element
+1375775518351	Delete element
+1375776298042	Rename type 'MainActivity'
+1375776310447	Rename type 'SocketMain'
+1375776794562	Rename type 'ZeusSocketService'
+1375776874640	Rename type 'ZeusBinder'
+1375777433811	Delete element
+1375777439679	Rename type 'MainActivity2'
+1375782479077	Delete element
+1375783454407	Move compilation unit
+1375784905679	Delete element
+1375786921081	Delete element
+1375787176641	Delete element
+1375789119464	Copy compilation unit
+1375794118465	Delete element
+1375858218606	Copy compilation unit
+1375876400817	Rename local variable 'command'
+1375877483076	Rename field 'inspectedObjects'
+1375879528223	Rename local variable 'ois'
+1375879553452	Rename local variable 'oos'
+1375940772616	Rename field 'cache'
+1375941375073	Rename field 'rObjects'
+1375963411940	Rename method 'convertToPrimitive'
+1375963623588	Rename method 'convertToPrimitiveOrNull'
+1375966314774	Rename local variable 'field'
+1375967267688	Delete elements
+1375970484142	Delete element
+1376048099027	Delete element
+1376048106971	Delete element
+1376050798764	Delete element
+1376051146678	Delete element
+1376052546880	Rename type 'Compiler'
+1376052739798	Delete elements
+1376055050906	Delete element
+1376055358996	Rename package 'com.java.tools'
+1376055380455	Delete element

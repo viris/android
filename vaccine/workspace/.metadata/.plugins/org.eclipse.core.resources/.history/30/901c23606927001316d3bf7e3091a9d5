@@ -1,0 +1,547 @@
+package com.viris.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.commons.io.FileUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import com.example.service.SerializedObject;
+import com.example.service.TransactionUnit;
+import com.viris.debuger.Init;
+import com.viris.debuger.SocketClient;
+
+public class Main extends JPanel implements ActionListener {
+
+	/**
+	 * 
+	 */
+	
+	/*
+	private static final long serialVersionUID = 2110691268627743502L;
+	public BufferedReader input;
+	private JFileChooser fc;
+	private JTextArea log;
+	private JScrollPane pane;
+	private ApkBrowser browser;
+	private static JFrame frame;
+	private Init init;
+	private SocketClient client;
+	private static int port=8844;
+
+
+	public Main(){
+		this.init = new Init();
+		fc = new JFileChooser();
+		log = new JTextArea(20, 80);
+		pane = new JScrollPane(log);
+		this.add(pane);
+		client = new SocketClient(port);
+
+
+	}
+	private static void createAndShowGUI() {
+		frame = new JFrame("APK Browser");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLocation(300, 150);
+
+		Main proc = new Main();
+		Menu menu = new Menu(proc);
+		frame.setJMenuBar(menu);
+		frame.setContentPane(proc);
+		// Display the window.
+		frame.pack();
+		frame.setVisible(true);
+	}
+
+	public static void main(String[] args) {
+
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				createAndShowGUI();
+			}
+		});
+	}
+
+
+
+	public int runCommand(String desc,final String[] command) {
+
+
+		try {
+
+			
+			if(command==null){
+				System.out.println(desc);
+				setText(desc);
+				return 0;
+			}else if(!desc.equals("")){
+				System.out.println(desc);
+				setText(desc);		
+			}
+			Runtime rt = Runtime.getRuntime();
+			Process proc = rt.exec(command);
+			InputStream is = proc.getInputStream();
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);
+			String line;
+			while ((line = br.readLine()) != null) {
+				System.out.println(line);
+				setText(line);
+			}
+			proc.waitFor();
+		
+			is.close();
+
+			return 	proc.exitValue();
+
+		}
+		catch (Exception err) {
+			err.printStackTrace();
+		}
+		return 1;
+
+
+	}
+
+	public void install(){
+		int returnVal = fc.showOpenDialog(this);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+
+			String[] command = null;
+
+
+			File file = fc.getSelectedFile();
+			String source = file.getAbsolutePath();
+			String destination = System.getProperty("user.dir") + "/temp/apk";
+			command = new String[] { init.path_to_apktool, "d", "-f", source,
+					destination };
+
+
+			if(runCommand("Baksmaling...",command)!=0)
+				return;
+
+
+			source = System.getProperty("user.dir") + "/Smalli.apk";
+			destination = System.getProperty("user.dir") + "/temp/Smalli";
+			command = new String[] { init.path_to_apktool, "d", "-f", source,
+					destination };
+
+			if(runCommand("",command)!=0)
+				return;
+
+			if(runCommand("Injecting and modifing...",null)!=0)
+				return;
+
+			try {
+
+				//copy service source
+				source = System.getProperty("user.dir") + "/temp/Smalli/smali/com";
+
+				destination = System.getProperty("user.dir") + "/temp/apk/smali";
+
+
+				FileUtils.copyDirectoryToDirectory(new File(source), new File(
+						destination));
+
+				//copy beanshell source
+				source = System.getProperty("user.dir") + "/temp/Smalli/smali/bsh";
+
+				FileUtils.copyDirectoryToDirectory(new File(source), new File(
+						destination));
+
+
+			} catch (IOException ex) {
+				// TODO Auto-generated catch block
+				ex.printStackTrace();
+			}
+
+			// replacing port
+			try {
+				//first try to find a port which is not taken and then set the port number to install 
+				client = getClient(client);
+				port = client.getPort();
+				
+				source = System.getProperty("user.dir")
+						+ "/temp/apk/smali/com/example/service/SocketService.smali";
+				File manifest = new File(source);
+				BufferedReader reader = new BufferedReader(new FileReader(
+						manifest));
+				String sline = "", oldtext = "";
+				while ((sline = reader.readLine()) != null) {
+
+					oldtext += sline + "\r\n";
+
+				}
+				reader.close();
+			
+				String replace = "0x" + Integer.toHexString(port);
+				// replacing the hex value "0x959d" => 38301 in smali file with
+				// config port
+				String newtext = oldtext.replaceAll("0x959d", replace);
+				FileWriter writer = new FileWriter(source);
+				writer.write(newtext);
+				writer.close();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+
+			try {
+				source = System.getProperty("user.dir")
+						+ "/temp/apk/AndroidManifest.xml";
+				File manifest = new File(source);
+				BufferedReader reader = new BufferedReader(new FileReader(
+						manifest));
+				String sline = "", oldtext = "";
+				while ((sline = reader.readLine()) != null) {
+
+					oldtext += sline + "\r\n";
+
+				}
+				reader.close();
+
+				String replace = "<service android:name=\"com.example.service.SocketService\" android:enabled=\"true\" android:exported=\"true\"><intent-filter><action android:name=\"com.example.smalli.service\"/> </intent-filter></service></application>";
+
+				String newtext = oldtext.replaceAll("</application>", replace);
+				FileWriter writer = new FileWriter(source);
+				writer.write(newtext);
+				writer.close();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+
+
+
+
+			source = System.getProperty("user.dir") + "/temp/apk";
+			destination = System.getProperty("user.dir") + "/temp/tmp.apk";
+			command = new String[] { init.path_to_apktool, "b", "-f", source,
+					destination };
+
+			if(runCommand("Smaling...",command)!=0)
+				return;
+
+			command = new String[] { init.path_to_jarsigner, "-verbose",
+					"-sigalg", "MD5withRSA", "-digestalg", "SHA1", "-keystore",
+					init.path_to_keystore, "-storepass", "android",
+					"-signedjar",
+					System.getProperty("user.dir") + "/temp/signed_tmp.apk",
+					System.getProperty("user.dir") + "/temp/tmp.apk",
+			"androiddebugkey" };
+
+			if(runCommand("Signing...",command)!=0)
+				return;
+
+
+			command = new String[] { init.path_to_adb, "install",
+					System.getProperty("user.dir") + "/temp/signed_tmp.apk" };
+
+			if(runCommand("Installing apk...",command)!=0)
+				return;
+
+
+
+			String packageName = "";
+			try {
+				DocumentBuilderFactory dbf = DocumentBuilderFactory
+						.newInstance();
+				DocumentBuilder db = dbf.newDocumentBuilder();
+				Document document = db.parse(new File(System
+						.getProperty("user.dir")
+						+ "/temp/apk/AndroidManifest.xml"));
+				NodeList nodeList = document.getElementsByTagName("manifest");
+				for (int x = 0, size = nodeList.getLength(); x < size; x++) {
+					packageName = nodeList.item(x).getAttributes()
+							.getNamedItem("package").getNodeValue();
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			} catch (SAXException ex) {
+				ex.printStackTrace();
+			} catch (ParserConfigurationException ex) {
+				ex.printStackTrace();
+			}
+
+			command = new String[] { init.path_to_adb, "shell", "am",
+					"startservice", "--user", "0", "-a",
+					"com.example.smalli.service", "-n",
+					packageName + "/com.example.service.SocketService" };
+			if(runCommand("Starting service...",command)!=0)
+				return;
+
+
+			command = new String[] { init.path_to_adb, "forward",
+					"tcp:" + port, "tcp:" + port };
+			if(runCommand("Forwarding port in adb...",command)!=0)
+				return;
+
+			if(runCommand("Done! Now you can connect...",null)!=0)
+				return;
+
+			try {
+				String match = packageName+":"+String.valueOf(port);
+				if(!inSession(match)){
+					PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(System.getProperty("user.dir")+"/session",true)));
+				    out.println(packageName+":"+String.valueOf(port));
+				    out.close();
+
+				}
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			log.append("Open command cancelled by user\n");
+		}
+
+
+	}
+	public Object[] getOptions(){
+		File file = new File(System.getProperty("user.dir")+"/session");
+		List<String> options = new ArrayList<String>();
+		try {
+			Scanner scanner = new Scanner(file);
+
+			while (scanner.hasNextLine()) {
+				String line = scanner.nextLine();
+				options.add(line);
+			}
+			return options.toArray();
+		} catch(FileNotFoundException e) { 
+			e.printStackTrace();
+		}
+		return null;
+	}
+	public boolean inSession(String match){
+		File file = new File(System.getProperty("user.dir")+"/session");
+
+		try {
+			Scanner scanner = new Scanner(file);
+
+			while (scanner.hasNextLine()) {
+				String line = scanner.nextLine();
+				if(line.equalsIgnoreCase(match)) { 
+					return true;
+				}
+			}
+			return false;
+		} catch(FileNotFoundException e) { 
+			e.printStackTrace();
+		}
+		return false;
+	}
+	private void setText(String text) {
+
+		log.append(text+"\n");
+		log.update(log.getGraphics());
+		log.setCaretPosition(log.getText().length() - 1);
+
+	}
+	
+	public boolean testConnection(SocketClient client){
+		//we are testing if an server is already listening
+		//to that port.True is return if no connection could be
+		//established
+		boolean success = true;
+		try {
+			client.testConnection();
+			success = false;
+		} catch (UnknownHostException e) {
+			success = true;
+			return success;
+		} catch (IOException e) {
+			success = true;
+			return success;
+		}
+		return success;
+	}
+	public SocketClient getClient(SocketClient client){
+		while(!testConnection(client)){
+			client.setPort(client.getPort()+1);
+		}
+		return client;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+
+		if(e.getActionCommand().equals(Menu.CONNECT)){ 
+			frame.setContentPane(this);
+			frame.pack();
+			log.setText("");
+			try{
+				Object[] options = getOptions();
+				if(options ==null || options.length==0){
+					log.append("No entries for injected APKS in session file\n");
+					browser = null;
+					return;
+				}
+				String s = (String)JOptionPane.showInputDialog(
+						frame,
+						"Choose package...",
+						"Customized Dialog",
+						JOptionPane.PLAIN_MESSAGE,
+						null,
+						options,options[0]);
+
+				//If a string was returned
+				String p;
+				if ((s != null) && (s.length() > 0)) {
+					p = s.split(":")[1];
+					
+				}else{
+					return;
+				}
+						
+				client = new SocketClient(Integer.parseInt(p));
+				browser = null;
+				browser = new ApkBrowser(init,client);
+				browser.createAndShow(client);
+				browser.setPreferredSize(new Dimension(900, 600));
+				browser.buildTree();
+				browser.setOpaque(true);
+				frame.setContentPane(browser);
+				frame.pack();
+			} catch (UnknownHostException e1) {
+				log.setText("UnknowHost expception");
+				return;
+
+			} catch (IOException e1) {
+				log.setText("No service listening. Try to start service or install new Apk");
+				return;
+			} catch(Exception e1){
+				log.setText("No service listening. Try to start service or install new Apk");
+				return;
+
+			}
+
+		}else if (e.getActionCommand().equals(Menu.INSTALL)){
+			log.setText("");
+			frame.setContentPane(this);
+			frame.pack();
+			install();
+		}else if(e.getActionCommand().equals(Menu.START_SERVICE)){
+			frame.setContentPane(this);
+			frame.pack();
+			Object[] options = getOptions();
+			if(options ==null || options.length==0){
+				log.append("No entries for injected APKS in session file\n");
+				return;
+			}
+			String s = (String)JOptionPane.showInputDialog(
+					frame,
+					"Choose package...",
+					"Customized Dialog",
+					JOptionPane.PLAIN_MESSAGE,
+					null,
+					options,options[0]);
+
+			//If a string was returned
+			if ((s != null) && (s.length() > 0)) {
+				frame.setContentPane(log);
+				frame.pack();
+				browser = null;
+				String packageName = s.split(":")[0];
+				String port = s.split(":")[1];
+				log.setText("");
+				String[] command = new String[] { init.path_to_adb, "shell", "am",
+						"startservice", "--user", "0", "-a",
+						"com.example.smalli.service", "-n",
+						packageName + "/com.example.service.SocketService" };
+				
+				runCommand("Starting service...",command);
+
+
+				command = new String[] { init.path_to_adb, "forward",
+						"tcp:" + port, "tcp:" + port };
+				runCommand("Forwarding port in adb...",command);
+				runCommand("Done! Now you can connect...",null);
+
+			}
+
+
+		}else if (e.getActionCommand().equals(Menu.STOP_SERVICE)){
+			try {
+				frame.setContentPane(this);
+				frame.pack();
+				
+				Object[] options = getOptions();
+				if(options ==null || options.length==0){
+					log.append("No entries for injected APKS in session file\n");
+					return;
+				}
+				String s = (String)JOptionPane.showInputDialog(
+						frame,
+						"Choose package...",
+						"Customized Dialog",
+						JOptionPane.PLAIN_MESSAGE,
+						null,
+						options,options[0]);
+				//If a string was returned
+				if ((s != null) && (s.length() > 0)) {
+					
+					String port = s.split(":")[1];
+					client = new SocketClient(Integer.parseInt(port));
+
+					SerializedObject object = new SerializedObject("", "",0, "", "");
+					TransactionUnit<SerializedObject> tu = new TransactionUnit<SerializedObject>(object);
+					tu.desc = "stop";
+					client.message(tu);
+					log.setText("");
+					log.append("Service on port "+port+" stoped!");
+				}
+
+			} catch (UnknownHostException e1) {
+				log.setText("UnknowHost expception");
+				return;
+
+			} catch (IOException e1) {
+				log.setText("No service listening. Try to start service or install new Apk");
+				//e1.printStackTrace();
+
+			}catch (ClassNotFoundException e1) {
+				//should not happen
+				e1.printStackTrace();
+			}
+
+		}
+
+
+
+	}
+}

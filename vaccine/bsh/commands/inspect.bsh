@@ -1,0 +1,153 @@
+/**
+	Returns all fields of recieving object
+
+	@method void inspect(value, name,boolean )
+*/
+
+
+bsh.help.javap= "usage: inspect( value, name, boolean )";
+
+import bsh.ClassIdentifier;
+import java.lang.reflect.Modifier;
+import xyzkwjbl.viris.service.TransactionUnit;
+import java.lang.reflect.Constructor;
+
+
+
+
+inspect( Object o, String treeParentName, boolean methods ) 
+{
+
+	
+	setAccessibility(true);
+	
+	if (o==null){
+		print("object is null");
+		return null;	
+	}
+	
+	try{
+	
+		this.template=super.template;	
+		this.map  = new HashMap();
+		
+		
+		list = new ArrayList();	
+		Class clas;
+
+		if ( o instanceof ClassIdentifier ){
+			clas = this.caller.namespace.identifierToClass(o);
+		}else if (o instanceof Byte
+	          || o instanceof Short
+	          || o instanceof Integer
+	          || o instanceof Long
+	          || o instanceof Float
+	          || o instanceof Double
+	          || o instanceof Boolean
+	          || o instanceof Character
+		  ||o instanceof String) {
+	    		return null;
+		}else if ( o instanceof Class ){
+			clas = o;
+		}else {	
+			clas = o.getClass();
+		}
+		
+		
+		//ad main class to classes array	
+		classes = new ArrayList();
+		classes.add(clas);
+		
+		
+	
+		//get parents
+		parent = clas.getSuperclass();
+		while(parent != null){	
+			arr = parent.toString().split(" ");
+			name =arr[arr.length-1];
+			if (template.contains(name))
+				classes.add(parent);
+			parent = parent.getSuperclass();	
+			
+		}
+	
+		for(int i=0; i<classes.size(); i++){		
+			clas = classes.get(i);
+
+			Constructor[] allConstructors = clas.getDeclaredConstructors();
+	    		for (Constructor ctor : allConstructors) {
+				TransactionUnit tu = new TransactionUnit("", "", ctor.toString(),"","","","constructor");
+				list.add(tu);
+				
+	    		}
+
+			if(methods){
+				this.dmethods=clas.getDeclaredMethods();
+				for(int i=0; i<dmethods.length; i++) {
+					arr = dmethods[i].toString().split(" ");
+					name="";
+					
+					if(!dmethods[i].toString().contains("static")){
+						
+						arr2 =arr[arr.length-1].split("\\(");
+						args = "("+arr2[arr2.length-1];
+						mname = arr2[0];
+						arr3 = mname.split("\\.");
+						name ="__"+treeParentName+"."+arr3[arr3.length-1]+args;
+						
+					}else{			
+						name = arr[arr.length-1];
+						
+					}
+					if(!map.containsKey(name)){
+						map.put(name,"");
+			
+						TransactionUnit tu = new TransactionUnit(name, dmethods[i].getName(), dmethods[i].toString(),"","",dmethods[i].getReturnType().toString(),"method");
+						list.add(tu);
+					}					
+				}
+			}
+		
+			this.fields=clas.getDeclaredFields();
+			for(int i=0; i<fields.length; i++) {
+				
+				fields[i].setAccessible(true);
+				arr = fields[i].toString().split(" ");
+				arr2 =arr[arr.length-1].split("\\.");
+
+				name="";
+				if(!fields[i].toString().contains("static ")){
+						
+					name ="__"+treeParentName+"."+arr2[arr2.length-1];	
+					value = fields[i].get(o);
+					
+				}else{			
+					name = arr[arr.length-1];
+					value = fields[i].get(o);
+				}
+				//if field in child class don't override it with field in parent class
+				if(!map.containsKey(name)){
+					map.put(name,value);
+					svalue="";
+					if(value == null)
+						svalue="null";
+					else
+						svalue = value.toString();		
+					TransactionUnit tu = new TransactionUnit(name, fields[i].getName(),fields[i].toString(),svalue, value ,fields[i].getType().toString(),"object");
+					list.add(tu);
+				
+				}
+							
+
+			}
+		}
+		
+		return list;
+	}catch(ex){
+		System.err.println("Inspect script error: "+ex.getMessage());	
+		return null;
+	}
+
+	return null;
+}
+

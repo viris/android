@@ -1,0 +1,406 @@
+package com.viris.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.RegexFileFilter;
+
+
+import com.example.service.Request;
+import com.example.service.TransactionUnit;
+import com.viris.debuger.ManifestChanger;
+import com.viris.debuger.SocketClient;
+
+public class Vaccine extends JPanel implements ActionListener{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1326174530156602511L;
+	protected DefaultMutableTreeNode rootNode;
+	protected DefaultTreeModel treeModel;
+	protected JTree tree;
+	private SocketClient client;
+	private JPanel control;
+	private JTextArea exec;
+	private JButton execute;
+	private JLabel status;
+	private JCheckBox showmethods;
+	private static String EXECUTE="CMD_EXECUTE";
+	private CellRenderer renderer;
+	private HashMap<String, String> treeObjects;
+	public String classFilesLocation;
+	
+	public static void main(String[] args){
+		
+	
+		
+		String command = args[0];
+			
+		if(command.equals("modify")){
+			ManifestChanger m = new ManifestChanger();
+			m.doit("unziped/AndroidManifest.xml");
+			return;
+		}
+		
+		
+		int port = Integer.parseInt(args[1]);
+		
+		SocketClient c = new SocketClient(port);
+		Vaccine browser = new Vaccine(c);
+		
+		
+		if(command.equals("stop")){
+			browser.stopService();
+			return;
+		}
+		if(!command.equals("start")){
+			return;
+		}	
+		browser.classFilesLocation = args[2];
+		try {
+			browser.createAndShow();
+			browser.setPreferredSize(new Dimension(900, 600));
+			browser.buildTree();
+			browser.setOpaque(true);
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		JFrame frame = new JFrame("Vaccine");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLocation(300, 150);
+		frame.setContentPane(browser);
+		// Display the window.
+		frame.pack();
+		frame.setVisible(true);
+		
+		
+	}
+
+	
+	public Vaccine( SocketClient client){
+		super(new BorderLayout());
+		this.client = client;
+		treeObjects = new HashMap<String, String>();
+		
+	}
+	public void createAndShow() {
+
+	
+
+		rootNode = new DefaultMutableTreeNode("Application");
+		treeModel = new DefaultTreeModel(rootNode);
+		
+		tree = new JTree(treeModel);
+		tree.setEditable(true);
+		tree.getSelectionModel().setSelectionMode(
+				TreeSelectionModel.SINGLE_TREE_SELECTION);
+		tree.setShowsRootHandles(true);
+		//adding a cell renderer
+		renderer = new CellRenderer();
+		
+		tree.setCellRenderer(renderer);
+		
+		//in new future user should change descriptions of tree nodes - will help if obfuscated code
+		tree.setEditable(false);
+	
+		
+		MouseListener ml = new ClickListener();
+		tree.addMouseListener(ml);
+		
+		JScrollPane scrollPane = new JScrollPane(tree);
+		
+		exec = new JTextArea();
+		JScrollPane scrollPane2 = new JScrollPane(exec);
+
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+				scrollPane, scrollPane2);
+		
+		splitPane.setResizeWeight(0.5);
+		splitPane.setOneTouchExpandable(true);
+		splitPane.setContinuousLayout(true);
+
+		add(splitPane, BorderLayout.CENTER);
+		
+		control = new JPanel(new GridBagLayout());
+		execute = new JButton("Execute");
+		execute.setActionCommand(EXECUTE);
+		execute.setPreferredSize(new Dimension(30,20));
+		execute.addActionListener(this);
+
+		
+		
+		status = new JLabel("");
+		status.setPreferredSize(new Dimension(300,20));
+		showmethods = new JCheckBox(" SHOW METHODS");
+		GridBagConstraints c = new GridBagConstraints();
+		c.weightx = 0.7;
+	    c.fill = GridBagConstraints.HORIZONTAL;
+	    c.gridx = 0;
+	    c.gridy = 0;
+	    control.add(status,c);
+	    
+		c.weightx = 0.2;
+	    c.fill = GridBagConstraints.HORIZONTAL;
+	    c.gridx = 1;
+	    c.gridy = 0;
+		control.add(execute,c);
+	
+	
+	
+		c.weightx = 0.1;
+	    c.fill = GridBagConstraints.HORIZONTAL;
+	    c.gridx = 2;
+	    c.gridy = 0;
+		control.add(showmethods,c);
+		
+		add(control,BorderLayout.PAGE_END);	
+		
+	}
+	/*som ugly code to get the basis of used classes in project*/
+	public static String getClassTemplate(File dir){
+		Collection<File> files = FileUtils.listFiles(
+				  dir, 
+				  new RegexFileFilter("^(.*?)"), 
+				  DirectoryFileFilter.DIRECTORY
+				);
+		String template="";
+		for(File f:files){
+			if(!f.getAbsolutePath().contains("bsh") && !f.getAbsolutePath().contains("/android/support/v4/")
+					&& !f.getAbsolutePath().contains("/com/example/service/")){
+				if(!f.getName().contains("$")){
+					String arr[] = f.getAbsolutePath().split("smali");
+					String className = arr[1].replaceAll("/", ".");
+					className = className.substring(1,className.length()-1);
+					template=template+className+",";
+				}
+				
+			}
+		}
+		template=template.substring(0,template.length()-1);
+		return template;
+		
+	}
+	 
+	public void buildTree() throws IOException, ClassNotFoundException {
+	
+		List<TransactionUnit> elements = client.message(new Request("init", getClassTemplate(new File(classFilesLocation))));
+		
+		Collections.sort(elements, new Comparator<TransactionUnit>() {
+			public int compare(TransactionUnit so1, TransactionUnit so2) {
+
+			      String name1 = so1.name;
+			      String name2 = so1.name;
+		
+			      return name1.compareTo(name2);
+			}
+		});
+		
+		for (TransactionUnit element : elements) {
+			this.addObject(null, new TreeObject(element));
+		
+		}
+	}
+	
+
+
+
+	public DefaultMutableTreeNode addObject(DefaultMutableTreeNode parent,
+			Object child) {
+		return addObject(parent, child, false);
+	}
+
+	public DefaultMutableTreeNode addObject(DefaultMutableTreeNode parent,
+			Object child, boolean shouldBeVisible) {
+	
+
+		if (parent == null) {
+			parent = rootNode;
+		}
+
+		
+		DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(child);
+		treeModel.insertNodeInto(childNode, parent, parent.getChildCount());
+	
+		return childNode;
+	}
+	
+	class ClickListener extends MouseAdapter{
+		@Override
+		public void mousePressed(MouseEvent e) {
+			int selRow = tree.getRowForLocation(e.getX(), e.getY());
+			TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
+			if (selRow != -1) {
+				
+				DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selPath
+						.getLastPathComponent();
+				
+				if (SwingUtilities.isRightMouseButton(e) ) {
+					
+					if (selRow == 0) {
+						try {
+							
+							selectedNode.removeAllChildren();
+							treeModel.reload();
+							buildTree();
+							Utils.expandAll(tree, true);
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (ClassNotFoundException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					
+						
+					} else {	
+						TreeObject tob = (TreeObject) selectedNode.getUserObject();
+						TransactionUnit unit = tob.getUnit();
+						if(unit.fieldType.equals("method")){
+							return;
+						}
+						String methods = String.valueOf(showmethods.isSelected());
+						String treeParentName = unit.name.substring(2,unit.name.length());
+						Request request = new Request("inspect("+unit.name+",\""+treeParentName+"\","+methods+")");
+						
+						List<TransactionUnit> elements;
+						try {
+							elements = client.message(request);
+							//if no elements recieved
+							if(elements == null || elements.size()==0){
+								return;
+							}
+							//we remove all children before update;
+							selectedNode.removeAllChildren();
+							treeModel.reload();
+							
+							for (TransactionUnit element : elements) {
+								addObject(selectedNode,new TreeObject(element));		
+							}					
+							
+							
+							Utils.expandAll(tree, true);
+							tree.setSelectionRow(selRow);
+						
+							
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (ClassNotFoundException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}	
+						
+						
+					}
+					
+				}else if(e.getClickCount() == 1){			
+					
+					if (selRow != 0){
+					
+						TreeObject tob = (TreeObject) selectedNode.getUserObject();
+						TransactionUnit unit = tob.getUnit();
+						status.setText(unit.value);
+						
+					} 
+				}else if(e.getClickCount() == 2){
+					if (selRow != 0){
+						 tree.setSelectionRow(selRow);
+						 TreeObject tob = (TreeObject) selectedNode.getUserObject();
+							 exec.insert(tob.getUnit().name, exec.getCaretPosition());
+					} 
+			    }
+				
+			}
+		}
+		
+	}
+	
+
+	public void stopService(){
+		
+		try {
+			client.message(new Request("stop"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+
+		String command = e.getActionCommand();
+
+		if (EXECUTE.equals(command)) {
+			
+			Request request = new Request( exec.getText());
+		
+			try {
+				client.message(request);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (ClassNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+		}
+	}
+	protected  static ImageIcon createImageIcon(String path) {
+    	java.net.URL imageURL = Vaccine.class.getClassLoader().getResource(path);
+    	ImageIcon icon =null;
+    	if (imageURL != null) {
+    	   icon = new ImageIcon(imageURL);
+    	}
+    	return icon;
+      
+    }
+	
+}

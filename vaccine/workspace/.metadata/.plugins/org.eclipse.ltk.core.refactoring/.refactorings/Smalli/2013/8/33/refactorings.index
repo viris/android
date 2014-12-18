@@ -1,0 +1,26 @@
+1376288683192	Rename field 'serials'
+1376288781561	Rename type 'Transaction'
+1376288809884	Rename field 'serialObjects'
+1376289007846	Infer generic type arguments
+1376289099731	Infer generic type arguments
+1376290927668	Rename method 'inspect'
+1376292069101	Rename method 'inspectFields'
+1376292961960	Rename type 'Serialized'
+1376297134969	Rename field 'depth'
+1376297172371	Rename field 'depth'
+1376298292465	Rename field 'serialized'
+1376303704968	Rename local variable 'value'
+1376381949114	Rename method 'isPrimitive'
+1376381971720	Rename method 'getPrimitive'
+1376393176692	Delete element
+1376393199701	Delete element
+1376394425942	Delete element
+1376394483190	Copy file
+1376474244930	Copy file
+1376478945401	Delete element
+1376479043552	Copy file
+1376479611728	Copy file
+1376480873350	Delete element
+1376480895832	Copy file
+1376483311394	Delete element
+1376483385632	Copy file

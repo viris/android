@@ -1,0 +1,23 @@
+import xyzkwjbl.viris.ext.CollectionManager;
+import xyzkwjbl.viris.ext.StringUtil;
+import xyzkwjbl.viris.ext.Primitive;
+
+void print( arg ) 
+{
+	if ( arg == null )
+		arg = "null";
+	
+	if ( !(arg instanceof Primitive) 
+		&& !(arg instanceof xyzkwjbl.viris.ext.ClassIdentifier ) 
+		&& arg.getClass().isArray() )
+	{
+        print( StringUtil.normalizeClassName(arg.getClass()) + ": {");
+		for(int i=0; i<arg.length; i++)
+			print( arg[i] + (i<arg.length?",":"") );
+		print("}");
+	}
+	else
+		this.interpreter.println(String.valueOf(arg));
+
+}
+

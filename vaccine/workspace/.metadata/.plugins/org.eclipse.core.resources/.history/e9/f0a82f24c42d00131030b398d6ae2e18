@@ -1,0 +1,31 @@
+package com.example.service;
+
+import java.io.Serializable;
+
+public class TransactionUnit<T>  implements Serializable{
+
+	
+	/**
+	 * Transaction class
+	 */
+	private static final long serialVersionUID = -4624398389740611117L;
+	
+	
+	private T t;
+	public String desc;
+	
+	public String command;
+	
+	public TransactionUnit(T t){
+		this.t = t;
+	
+	}
+	public void set(T t) { this.t = t; }
+	public T get() { return t; }
+	
+	@Override
+	public String toString(){
+		return t.toString();
+	}
+	
+}

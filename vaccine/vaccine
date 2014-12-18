@@ -1,0 +1,326 @@
+#!/bin/bash
+#
+# Author: Danijel Grah (danijel.grah@viris.si)
+#
+#
+
+#keystore settings
+DEFAULT_KEYSTORE=$HOME/.android/debug.keystore
+keystore=$DEFAULT_KEYSTORE
+storepass="android"
+storealias="androiddebugkey"
+
+#parameters
+command=""
+filename=""
+port=""
+packagename=""
+
+
+function usage {
+	printf "\n\n"
+	printf "Usage examples\n\n"
+	printf "Vaccinate and install vaccinated apk file:\n"
+	printf "./vaccine -i apkfile -p 8888\n"
+	printf "\nStop service on vaccinated apk file that listens on specified port:\n"
+	printf "./vaccine --stop full_package_name -p 8888\n"
+	printf "\nStart service of package (You can get the package name in log file):\n"
+	printf "./vaccine --start full_package_name -p 8888.\n\n"
+	printf "\nUse another keystore:\n"
+	printf "../vaccine -i apkfile -p 8888 --keystore path_to_keystore --pass keystore_password --alias keystore_alias\n\n"
+}
+
+function baksmali {
+
+	file=$(basename "$filename")
+	extension="${file##*.}"
+
+	if [ $extension != "apk" ]; then
+		printf "Provide a valid apk file"
+		usage
+		exit 1
+	fi
+
+	
+	#clean
+	rm -rf smali/*
+	rm -rf unziped/*
+
+	#copying apk
+	printf "Copying apk...\n\n"
+	cp $filename capk.apk
+
+	printf "Unziping apk...\n\n"
+	#Unzip
+	unzip capk.apk -d unziped
+
+
+	#modifying AndroidManifest.xml
+	#printf "\n Modifying AndroidManifest.xml...\n\n"
+	java -jar manifest.jar modify unziped/AndroidManifest.xml
+
+	printf "Baksmaling classes.dex\n\n"
+	#baksmali classes.dex
+	java -jar baksmali.jar unziped/classes.dex -o smali
+	printf "\n\n"
+}
+
+function smali {
+	#inject 
+	printf "Injecting smali source of service\n\n"
+	cp -R inject/xyzkwjbl smali/
+	cp -R inject/bsh smali/
+
+	printf "\n\n"
+
+
+	#replacing default port number
+	p=$(printf '%x' $port)
+	p=0x$p
+	sed -i 's/0x959d/'$p'/g' smali/xyzkwjbl/viris/service/SocketService.smali
+
+	#smali and move
+	printf "Smalling code in smali to classes.dex\n\n"
+	java -jar smali.jar smali -o classes.dex
+
+	printf "Modifying apk with aapt\n\n"
+	aapt r capk.apk AndroidManifest.xml
+	aapt a capk.apk AndroidManifest.xml
+	aapt r capk.apk classes.dex
+	aapt a capk.apk classes.dex 
+	#remove metadata
+	for a in $(aapt list capk.apk |grep META);do 
+		aapt r capk.apk $a 
+	done
+	printf "\n\n"
+
+	printf "Inserting Beanshell Commands\n\n"
+
+	for i in $(ls bsh/commands); do 
+		base=$(basename "$i")
+		extension="${base##*.}"
+		if [ $extension == "bsh" ]; then
+			aapt a capk.apk bsh/commands/$i 
+		fi
+	done
+
+	printf "\n\n"
+	#getting package name
+	package=$(aapt dump badging capk.apk|grep package|cut -f 2 -d "'")
+	wait
+	#assign package
+	packagename=$package
+	
+	#sign apk
+	jarsigner -verbose -sigalg MD5withRSA -digestalg SHA1 -keystore  $keystore -storepass $storepass -signedjar install.apk capk.apk $storealias
+
+	printf "\n Build done!\n install.apk ready to INSTALL!!\n";
+
+}
+function build {
+
+	#prepare and baksmali apk
+	baksmali
+
+	#smali and prepare
+	smali
+
+	
+}
+
+function installApk {
+
+	printf "\n\n"
+	printf "Instaling apk...\n\n"
+	adb install install.apk
+	wait
+
+}
+
+
+function clean {
+
+	#clean
+	rm -rf AndroidManifest.xml
+	rm -rf classes.dex
+	rm -rf capk.apk
+}
+
+function startService {
+
+
+	printf "Forwaring port $port\n\n"
+	adb forward tcp:$port tcp:$port
+
+	printf "Starting service\n\n"
+	adb shell am startservice --user 0 -a xyzkwjbl.viris.service -n $packagename/xyzkwjbl.viris.service.SocketService
+	wait
+	sleep 2
+	java -jar vaccine.jar start $port smali
+}
+
+function justRun {
+
+	adb forward tcp:38301 tcp:38301
+	java -jar vaccine.jar rstart 38301 smali 
+}
+
+while [ $# -gt 0 ]; do
+	if [[ $2 == "" ]]; then
+		usage
+		exit 1
+	fi
+        case $1
+        in
+	        -h | --help )
+                        usage
+                        exit 0
+	;;
+                -i | --install )
+			command="install"
+                        filename=$2
+                        shift 2
+       	;;
+                -b | --build )
+                        command="build"
+			filename=$2
+                        shift 2
+	;;
+                -r | --run )
+                        command="run"
+                        shift 2
+	;;
+		--start )
+                        command="start"
+			filename=$2
+			packagename=$filename
+                      	shift 2
+	;;
+		--stop )
+                        command="stop"
+			filename=$2
+			packagename=$filename
+                        shift 2	
+	                 	
+	;;
+		--baksmali )
+                        command="baksmali"
+			filename=$2
+			shift 2
+	
+	;;
+		--smali )
+                        command="smali"
+			shift 1
+	
+	              
+        ;;
+                -p| --port )
+                        port=$2
+			shift 2
+        ;;
+		--keystore )
+                        keystore=$2
+			shift 2
+	;;
+		--pass )
+                        storepass=$2
+			shift 2
+	;;
+		--alias )
+                        storealias=$2
+			shift 2
+        ;;
+                *)
+			usage		
+                       	printf "Unknown option $1, exiting\n\n" 1>&2
+                     exit 1
+        ;;
+        esac
+done
+
+
+#Check for usage
+if [[ $command != "smali" && $command != "baksmali"  && $command != "run" ]]; then
+	if [[ $filename == "" || $port == "" || $keystore = "" ]]; then
+		usage
+		exit 1
+	fi	
+elif [[ $command == "smali" && $port == "" ]]; then
+	usage
+	exit 1
+elif [[ $command == "baksmali" && $filename = "" ]]; then
+	usage
+	exit 1
+fi
+
+
+# Check if all needed commands installed.
+command -v adb       >/dev/null 2>&1 || { echo >&2 "[-] Command adb not installed, abort."; exit 1; }
+command -v java      >/dev/null 2>&1 || { echo >&2 "[-] Command java not installed, abort."; exit 1; }
+command -v unzip     >/dev/null 2>&1 || { echo >&2 "[-] Command unzip not installed, abort."; exit 1; }
+command -v aapt      >/dev/null 2>&1 || { echo >&2 "[-] Command aapt not installed, abort."; exit 1; }
+command -v jarsigner >/dev/null 2>&1 || { echo >&2 "[-] Command jarsigner not installed, abort."; exit 1; }
+
+# Check if keystore present
+if [ ! -f ~/.android/debug.keystore ]; then
+  keytool -genkey -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -validity 14000
+fi
+
+#Check for smali and backsmali
+runsmali=$(java -jar smali.jar)
+if [ -z "$runsmali" ]; then 
+	echo "No smali. Download smali-version.jar and place it into vaccine directory. Rename it to smali.jar" 
+	exit 1
+fi
+
+runbaksmali=$(java -jar baksmali.jar) 
+if [ -z "$runbaksmali" ]; then 
+	echo "No smali. Download baksmali-version.jar and place it into vaccine directory. Rename it to baksmali.jar";
+	exit 1 
+fi
+
+
+#Run
+if [ "$command" = "build" ]; then	
+	build
+elif [ "$command" = "install" ]; then	
+	build 
+	wait
+	if [ $? -ne 0 ]; then
+		printf "Build failed!\n\n"
+		exit 1
+	fi
+
+	# installing apk via adb
+	installApk
+
+	#start service
+	startService
+
+	#clean files
+	clean	
+
+	#write to session file
+	printf "$packagename:$port\n">>log
+
+
+elif [ "$command" = "stop" ]; then
+
+	java -jar vaccine.jar stop $port
+
+elif [ "$command" = "start" ]; then
+	
+	startService
+	
+elif [ "$command" = "smali" ]; then
+	smali
+	installApk
+	startService
+	clean
+elif [ "$command" = "baksmali" ]; then
+	baksmali
+elif [[ $command == "run" ]]; then
+	justRun
+fi
+

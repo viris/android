@@ -1,0 +1,10 @@
+[path]
+path_to_adb = /root/android/adt/sdk/platform-tools/adb
+path_to_apktool = /usr/local/bin/apktool
+path_to_jarsigner = jarsigner
+path_to_keystore = /root/.android/debug.keystore
+
+
+[general]
+show_methods = true
+port = 8844
