@@ -59,44 +59,45 @@ adb -d logcat SocketService:V System.out:I System.err:V *:S
 
 //create new scripted object
 
-object = object();
-object.foo = "This is foo of object";
+object = object();  
+object.foo = "This is foo of object";  
 
 //print to stdout
 
-print("This is a text...");
-System.out.println("This is printing the Java way");
+print("This is a text...");  
+System.out.println("This is printing the Java way");  
 
 
-//run on UI thread
-__beanshell.Name.Of.Activitiy.runOnUiThread (
-	new Thread(new Runnable() { 
-		public void run() {
-			__beanshell.Name.Of.Activitiy.someUIMethod();
-		}
-}));
+//run on UI thread  
+
+__beanshell.Name.Of.Activitiy.runOnUiThread (  
+	new Thread(new Runnable() {   
+		public void run() {  
+			__beanshell.Name.Of.Activitiy.someUIMethod();  
+		}  
+}));  
 
 
-//create an thread that prints every 2s a variable value to STDOUT (if you want't to stop this 
-//thread, just run the script object.flag=false)
+//create an thread that prints every 2s a variable value to STDOUT (if you want't to stop this   
+//thread, just run the script object.flag=false)  
 
-object = object();
-object.flag=true;
+object = object();  
+object.flag=true;  
 
-foo() {
-    run() {
+foo() {  
+    run() {  
     	   
-    	   while(object.flag){
-    	   		print(SOME_VARIABLE);
-    	   		Thread.sleep(2000);
-    	   	}
+    	   while(object.flag){  
+    	   		print(SOME_VARIABLE);  
+    	   		Thread.sleep(2000);  
+    	   	}  
         
-    }
-    return this;
-}
+    }  
+    return this;  
+}  
 
-foo = foo();
-new Thread( foo ).start();
+foo = foo();  
+new Thread( foo ).start();  
 
 
 
