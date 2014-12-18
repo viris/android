@@ -113,10 +113,10 @@ The java source code of the injected service (smali code is in the inject folder
 
 #We are using
 
-Beanshell (http://www.beanshell.org/download.html). Original source code at http://www.beanshell.org/bsh-2.0b4-src.zip
-RSyntaxTextArea (https://github.com/bobbylight)
-Apache Commons IO (http://commons.apache.org/proper/commons-io/)
-AXML (https://code.google.com/p/axml/)
+Beanshell (http://www.beanshell.org/download.html). Original source code at http://www.beanshell.org/bsh-2.0b4-src.zip  
+RSyntaxTextArea (https://github.com/bobbylight)  
+Apache Commons IO (http://commons.apache.org/proper/commons-io/)  
+AXML (https://code.google.com/p/axml/)  
 
 RSyntaxTextArea
 © 2012 Robert Futrell
