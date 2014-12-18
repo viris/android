@@ -7,7 +7,7 @@ Source is a Eclipse workspace and contains the following projects:
 
 GUI (the graphical user interface of Vaccine and the server part)  
 ManifestChanger (a component for chaning the AndroidManifest.xml file  )
-StaticVaccineLIb (a regular android application which includes Vaccine service and Beanshell library)  
+StaticVaccineLIb (a regular android application which includes Vaccine service and Beanshell library)    
 RuntimeVaccineLib( a regular android application which includes Vaccine service and included Beanshell source code)   
 
 In order to be able to inject StaticVaccineLib or RuntimeVaccineLib into the target application you need to first
