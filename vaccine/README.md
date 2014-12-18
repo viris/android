@@ -118,25 +118,25 @@ RSyntaxTextArea (https://github.com/bobbylight)
 Apache Commons IO (http://commons.apache.org/proper/commons-io/)  
 AXML (https://code.google.com/p/axml/)  
 
-RSyntaxTextArea
-© 2012 Robert Futrell
-http://fifesoft.com/rsyntaxtextarea/
-[All Rights Reserved](./referfiles/RSyntaxTextArea.License.txt)
+RSyntaxTextArea  
+© 2012 Robert Futrell  
+http://fifesoft.com/rsyntaxtextarea/  
+[All Rights Reserved](./referfiles/RSyntaxTextArea.License.txt)  
 
-Apache Commons IO
-Copyright 2002-2012 The Apache Software Foundation
-This product includes software developed by 
-The Apache Software Foundation (http://www.apache.org/).
-[Apache License](./referfiles/Apache.License.txt)
+Apache Commons IO  
+Copyright 2002-2012 The Apache Software Foundation  
+This product includes software developed by   
+The Apache Software Foundation (http://www.apache.org/).  
+[Apache License](./referfiles/Apache.License.txt)  
 
-AXML
-Copyright (c) 2009-2012 Panxiaobo
-https://code.google.com/p/axml/
-[Apache License](./referfiles/Apache.License.txt)
+AXML  
+Copyright (c) 2009-2012 Panxiaobo  
+https://code.google.com/p/axml/  
+[Apache License](./referfiles/Apache.License.txt)  
 
-BeanShell 
-Copyright(C) 2000 Pat Niemeyer
-[All Rights Reserved](./referfiles/Beanshell.License.txt) 
+BeanShell   
+Copyright(C) 2000 Pat Niemeyer  
+[All Rights Reserved](./referfiles/Beanshell.License.txt)   
 
 
 
